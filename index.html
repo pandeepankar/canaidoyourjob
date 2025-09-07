@@ -571,8 +571,13 @@
 
             getResults() {
                 // Return clean results without fingerprint data
-                const { votes, ...cleanData } = this.pollData;
-                return cleanData;
+                // Ensure all options are included even if 0
+                return {
+                    'no-way': this.pollData['no-way'] || 0,
+                    'some-tasks': this.pollData['some-tasks'] || 0,
+                    'probably': this.pollData['probably'] || 0,
+                    'already-does': this.pollData['already-does'] || 0
+                };
             }
         }
 
