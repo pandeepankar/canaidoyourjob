@@ -640,13 +640,27 @@
         }
 
         function showResults() {
+            console.log('=== SHOWING RESULTS ===');
+            console.log('User voted for:', poll.userVote);
+            
             document.getElementById('pollView').style.display = 'none';
             document.getElementById('resultsView').style.display = 'block';
             
+            // Force reload poll data from storage to ensure freshness
+            const stored = localStorage.getItem(poll.storageKey);
+            if (stored) {
+                const freshData = poll.decrypt(stored);
+                if (freshData) {
+                    poll.pollData = freshData;
+                }
+            }
+            
             const results = poll.getResults();
+            console.log('Results to display:', results);
+            
             const total = Object.keys(results)
                 .filter(k => k !== 'lastUpdate')
-                .reduce((sum, key) => sum + results[key], 0);
+                .reduce((sum, key) => sum + (results[key] || 0), 0);
             
             const resultsContainer = document.getElementById('resultsContainer');
             resultsContainer.innerHTML = '';
@@ -660,6 +674,8 @@
                 const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
                 const isUserVote = key === poll.userVote;
                 const isWinning = index === 0;
+                
+                console.log(`Option ${key}: ${count} votes, ${percentage}%, user voted: ${isUserVote}`);
                 
                 const resultItem = document.createElement('div');
                 resultItem.className = 'result-item';
