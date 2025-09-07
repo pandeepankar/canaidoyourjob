@@ -496,10 +496,10 @@
 
             getDefaultData() {
                 return {
-                    'no-way': 12,
-                    'some-tasks': 23,
-                    'probably': 17,
-                    'already-does': 8,
+                    'no-way': 0,
+                    'some-tasks': 0,
+                    'probably': 0,
+                    'already-does': 0,
                     votes: {},  // Track fingerprints
                     lastUpdate: Date.now()
                 };
@@ -525,6 +525,8 @@
             }
 
             vote(value) {
+                console.log('Vote method called with:', value); // Debug
+                
                 if (this.rateLimited) {
                     return false;
                 }
@@ -533,12 +535,14 @@
                 
                 // Handle vote change
                 if (this.userVote && this.userVote !== value) {
+                    console.log('Changing vote from', this.userVote, 'to', value); // Debug
                     this.pollData[this.userVote] = Math.max(0, this.pollData[this.userVote] - 1);
                 }
                 
                 // Add new vote
                 if (this.userVote !== value) {
                     this.pollData[value] = (this.pollData[value] || 0) + 1;
+                    console.log('New count for', value, ':', this.pollData[value]); // Debug
                 }
                 
                 // Track fingerprint
@@ -553,6 +557,7 @@
                 localStorage.setItem(this.voteKey, value);
                 localStorage.setItem('last_vote_time', Date.now().toString());
                 
+                console.log('Vote saved. Current data:', this.getResults()); // Debug
                 return true;
             }
 
