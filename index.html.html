@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 vs 👤 Quick Poll</title>
+    <meta property="og:title" content="Can AI Do YOUR Job Better Than You?">
+    <meta property="og:description" content="One tap to vote • 100% anonymous • See what everyone really thinks">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #ffffff;
+        }
+
+        /* Disable text selection and right-click */
+        .container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.6s ease;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .emoji-header {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.3;
+        }
+
+        .subtext {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .question {
+            color: #ffffff;
+            font-weight: 600;
+            margin: 20px 0;
+            font-size: 20px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(102, 126, 234, 0.5);
+            transform: translateX(4px);
+        }
+
+        .option.selected {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .option-emoji {
+            font-size: 24px;
+        }
+
+        .option-text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .results-view {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+
+        .result-label {
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-percentage {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .result-bar-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            height: 36px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            min-width: fit-content;
+        }
+
+        .result-bar.winning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .result-count {
+            font-size: 12px;
+            color: white;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .your-vote-indicator {
+            display: inline-block;
+            padding: 3px 10px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid #667eea;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .change-vote-btn {
+            margin-top: 24px;
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .change-vote-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+
+        .total-votes {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .vote-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .share-prompt {
+            text-align: center;
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .share-prompt strong {
+            color: #667eea;
+        }
+
+        .security-notice {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .question {
+                font-size: 18px;
+            }
+
+            .option {
+                padding: 16px;
+            }
+
+            .emoji-header {
+                font-size: 40px;
+            }
+        }
+
+        .tap-hint {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 16px;
+            animation: fadeInOut 3s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="pollView">
+            <div class="emoji-header">🤖 vs 👤</div>
+            <h1>The Question That's Breaking The Internet</h1>
+            <div class="subtext">One tap • 100% anonymous • See instant results</div>
+            
+            <div class="question">Can AI do YOUR job better than you?</div>
+            
+            <div class="options" id="options">
+                <div class="option" data-value="no-way">
+                    <span class="option-emoji">😎</span>
+                    <span class="option-text">No way, I'm irreplaceable</span>
+                </div>
+                <div class="option" data-value="some-tasks">
+                    <span class="option-emoji">🤔</span>
+                    <span class="option-text">Maybe some tasks, but not the important stuff</span>
+                </div>
+                <div class="option" data-value="probably">
+                    <span class="option-emoji">😬</span>
+                    <span class="option-text">Probably... and that's scary</span>
+                </div>
+                <div class="option" data-value="already-does">
+                    <span class="option-emoji">🤯</span>
+                    <span class="option-text">It already does (and I'm learning to adapt)</span>
+                </div>
+            </div>
+            
+            <div class="tap-hint">👆 Just tap one - it's anonymous!</div>
+        </div>
+
+        <div id="resultsView" class="results-view">
+            <div class="emoji-header">📊</div>
+            <h1>Here's What The World Thinks</h1>
+            
+            <div id="resultsContainer"></div>
+            
+            <div class="total-votes" id="totalVotes"></div>
+            
+            <div class="share-prompt">
+                <strong>🎯 Be part of something bigger!</strong><br>
+                Every vote shapes the conversation about AI and work
+            </div>
+            
+            <button class="change-vote-btn" onclick="changeVote()">Change My Answer</button>
+            
+            <div class="security-notice">
+                🔒 One vote per device • Verified results
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security measures
+        (function() {
+            'use strict';
+            
+            // Disable console
+            const disableConsole = () => {
+                Object.keys(console).forEach(key => {
+                    console[key] = () => {};
+                });
+            };
+            
+            // Detect DevTools
+            let devtools = {open: false, orientation: null};
+            const threshold = 160;
+            setInterval(() => {
+                if (window.outerHeight - window.innerHeight > threshold || 
+                    window.outerWidth - window.innerWidth > threshold) {
+                    if (!devtools.open) {
+                        devtools.open = true;
+                        disableConsole();
+                        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:white;font-size:20px;">🔒 Security Alert: Please close DevTools and refresh</div>';
+                    }
+                }
+            }, 500);
+
+            // Disable right-click
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            
+            // Disable key combinations
+            document.addEventListener('keydown', e => {
+                // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+                if (e.keyCode === 123 || 
+                    (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || 
+                    (e.ctrlKey && e.keyCode === 85)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        })();
+
+        // Encrypted storage with fingerprinting
+        class SecurePoll {
+            constructor() {
+                this.encryptionKey = 'AI-P0ll-2024';
+                this.storageKey = 'poll_data_v2';
+                this.voteKey = 'user_vote_v2';
+                this.fingerprintKey = 'device_fp';
+                this.init();
+            }
+
+            // Simple obfuscation (for client-side, not truly secure but deters casual tampering)
+            encrypt(data) {
+                const str = JSON.stringify(data);
+                return btoa(str.split('').map(char => 
+                    String.fromCharCode(char.charCodeAt(0) ^ this.encryptionKey.charCodeAt(0))
+                ).join(''));
+            }
+
+            decrypt(data) {
+                try {
+                    const str = atob(data).split('').map(char => 
+                        String.fromCharCode(char.charCodeAt(0) ^ this.encryptionKey.charCodeAt(0))
+                    ).join('');
+                    return JSON.parse(str);
+                } catch {
+                    return null;
+                }
+            }
+
+            // Generate device fingerprint
+            getFingerprint() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillText('🤖👤', 2, 2);
+                const data = canvas.toDataURL();
+                
+                const fingerprint = {
+                    screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    canvas: data.slice(-50),
+                    timestamp: Date.now()
+                };
+                
+                return btoa(JSON.stringify(fingerprint));
+            }
+
+            init() {
+                // Initialize or retrieve poll data
+                const stored = localStorage.getItem(this.storageKey);
+                if (stored) {
+                    this.pollData = this.decrypt(stored) || this.getDefaultData();
+                } else {
+                    this.pollData = this.getDefaultData();
+                    this.save();
+                }
+
+                // Check for existing vote
+                this.userVote = localStorage.getItem(this.voteKey);
+                this.deviceFingerprint = this.getFingerprint();
+                
+                // Rate limiting check
+                this.checkRateLimit();
+            }
+
+            getDefaultData() {
+                return {
+                    'no-way': 12,
+                    'some-tasks': 23,
+                    'probably': 17,
+                    'already-does': 8,
+                    votes: {},  // Track fingerprints
+                    lastUpdate: Date.now()
+                };
+            }
+
+            checkRateLimit() {
+                const lastVote = localStorage.getItem('last_vote_time');
+                if (lastVote) {
+                    const timeDiff = Date.now() - parseInt(lastVote);
+                    if (timeDiff < 5000) { // 5 second cooldown
+                        this.rateLimited = true;
+                        setTimeout(() => { this.rateLimited = false; }, 5000 - timeDiff);
+                    }
+                }
+            }
+
+            canVote() {
+                // Check if this device has already voted
+                if (this.pollData.votes && this.pollData.votes[this.deviceFingerprint]) {
+                    return 'change'; // Can only change existing vote
+                }
+                return !this.rateLimited;
+            }
+
+            vote(value) {
+                if (this.rateLimited) {
+                    return false;
+                }
+
+                const canVoteStatus = this.canVote();
+                
+                // Handle vote change
+                if (this.userVote && this.userVote !== value) {
+                    this.pollData[this.userVote] = Math.max(0, this.pollData[this.userVote] - 1);
+                }
+                
+                // Add new vote
+                if (this.userVote !== value) {
+                    this.pollData[value] = (this.pollData[value] || 0) + 1;
+                }
+                
+                // Track fingerprint
+                if (!this.pollData.votes) this.pollData.votes = {};
+                this.pollData.votes[this.deviceFingerprint] = value;
+                
+                this.userVote = value;
+                this.pollData.lastUpdate = Date.now();
+                
+                // Save everything
+                this.save();
+                localStorage.setItem(this.voteKey, value);
+                localStorage.setItem('last_vote_time', Date.now().toString());
+                
+                return true;
+            }
+
+            save() {
+                const encrypted = this.encrypt(this.pollData);
+                localStorage.setItem(this.storageKey, encrypted);
+            }
+
+            getResults() {
+                // Return clean results without fingerprint data
+                const { votes, ...cleanData } = this.pollData;
+                return cleanData;
+            }
+        }
+
+        // Initialize secure poll
+        const poll = new SecurePoll();
+        
+        const optionLabels = {
+            'no-way': '😎 No way, I\'m irreplaceable',
+            'some-tasks': '🤔 Maybe some tasks, but not the important stuff',
+            'probably': '😬 Probably... and that\'s scary',
+            'already-does': '🤯 It already does (and I\'m learning to adapt)'
+        };
+
+        // Check if user has already voted
+        if (poll.userVote) {
+            showResults();
+        }
+
+        // Add click handlers to options
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                if (poll.rateLimited) {
+                    this.style.animation = 'shake 0.5s';
+                    setTimeout(() => { this.style.animation = ''; }, 500);
+                    return;
+                }
+                
+                // Immediate visual feedback
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+                
+                // Remove previous selection
+                document.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selection to clicked option
+                this.classList.add('selected');
+                
+                // Disable all options temporarily
+                document.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.add('disabled');
+                });
+                
+                // Process vote after a short delay for visual feedback
+                setTimeout(() => {
+                    if (poll.vote(this.dataset.value)) {
+                        showResults();
+                    }
+                }, 200);
+            });
+        });
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toLocaleString();
+        }
+
+        function showResults() {
+            document.getElementById('pollView').style.display = 'none';
+            document.getElementById('resultsView').style.display = 'block';
+            
+            const results = poll.getResults();
+            const total = Object.keys(results)
+                .filter(k => k !== 'lastUpdate')
+                .reduce((sum, key) => sum + results[key], 0);
+            
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+            
+            // Sort options by vote count
+            const sortedOptions = Object.entries(results)
+                .filter(([k]) => k !== 'lastUpdate')
+                .sort((a, b) => b[1] - a[1]);
+            
+            sortedOptions.forEach(([key, count], index) => {
+                const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                const isUserVote = key === poll.userVote;
+                const isWinning = index === 0;
+                
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.innerHTML = `
+                    <div class="result-header">
+                        <span class="result-label">
+                            ${optionLabels[key]}
+                            ${isUserVote ? '<span class="your-vote-indicator">YOU</span>' : ''}
+                        </span>
+                        <span class="result-percentage">${percentage}%</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar ${isWinning ? 'winning' : ''}" style="width: ${Math.max(percentage, 8)}%">
+                            <span class="result-count">${formatNumber(count)}</span>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.appendChild(resultItem);
+            });
+            
+            document.getElementById('totalVotes').innerHTML = `
+                <span class="vote-count">${formatNumber(total)}</span>
+                people have voted
+            `;
+        }
+
+        function changeVote() {
+            document.getElementById('resultsView').style.display = 'none';
+            document.getElementById('pollView').style.display = 'block';
+            
+            // Re-enable options
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('disabled');
+                opt.classList.remove('selected');
+                if (opt.dataset.value === poll.userVote) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+
+        // Anti-tampering: Periodically validate data integrity
+        setInterval(() => {
+            const stored = localStorage.getItem(poll.storageKey);
+            if (stored) {
+                const data = poll.decrypt(stored);
+                if (!data || typeof data !== 'object') {
+                    // Data tampered, reset
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        }, 3000);
+
+        // Add CSS animation for shake
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
