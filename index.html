@@ -486,8 +486,13 @@
                     this.save();
                 }
 
-                // Check for existing vote
-                this.userVote = localStorage.getItem(this.voteKey);
+                // Check for existing vote and load it
+                const storedVote = localStorage.getItem(this.voteKey);
+                if (storedVote) {
+                    this.userVote = storedVote;
+                    console.log('Loaded existing vote:', this.userVote);
+                }
+                
                 this.deviceFingerprint = this.getFingerprint();
                 
                 // Rate limiting check
